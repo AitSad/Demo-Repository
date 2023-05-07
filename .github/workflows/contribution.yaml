@@ -1,0 +1,35 @@
+name: Greet User
+
+on:
+  pull_request:
+    types: [opened]
+
+jobs:
+  greet:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Get User Login
+      run: echo "${{ github.event.pull_request.user.login }}" >> user.txt
+
+    - name: Greet User
+      run: echo "Hello, ${{ steps.get_user_login.outputs.user_login }}! Thank you for opening a pull request. Gee, Thanks for contributing AitSad!" 
+      env:
+        USER_LOGIN: ${{ steps.get_user_login.outputs.user_login }}
+
+    - name: Comment on PR
+      uses: actions/github-script@v4
+      with:
+        script: |
+          github.issues.createComment({
+            issue_number: ${{ github.event.number }},
+            owner: ${{ github.event.repository.owner.login }},
+            repo: ${{ github.event.repository.name }},
+            body: 'Hello @${{ env.USER_LOGIN }}, thanks for your contribution! :tada:. Hope it brings something!'
+          })
+
+    - name: Cleanup
+      run: rm -f user.txt
+
+    outputs:
+      user_login: ${{ steps.get_user_login.outputs.user_login }}
